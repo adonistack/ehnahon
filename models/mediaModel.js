@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const applyToJSON = require('../middlewares/applyToJson');
 
 const mediaSchema = new Schema({
     url: {
@@ -26,5 +27,7 @@ const mediaSchema = new Schema({
     },
     
 }, { timestamps: true });
+
+applyToJSON(mediaSchema);
 
 module.exports = mongoose.model('Media', mediaSchema);

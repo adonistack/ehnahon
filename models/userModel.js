@@ -1,69 +1,47 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
 const bcrypt = require('bcrypt');
-
+const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
+  userName: { type: String, required: true },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phone: { type: String },
+  password: { type: String, required: true },
+  isAdmin: { type: Boolean, default: false },
+  profilePicture: { type: Schema.Types.ObjectId, ref: 'Media' },
+  resetToken: { type: String },
+  resetTokenExpiry: { type: Date }
+}, { timestamps: true });
 
-  firstName: {
-    type: String,
-    required: true,
-  },
-  lastName: {
-    type: String,
-    required: true,
-  },
-  userName: {
-    type: String,
-    required: true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  profilePicture: {
-    type: Schema.Types.ObjectId,
-    ref: 'Media'
-  },
-  about: {
-    type: String,
-    default: '',
-  },
-  accountType: {
-    type: String,
-    enum: ['regular', 'restaurant_owner'],
-    default: 'regular'
-  },
-  
-  socialMedia: {
-    type: Map,
-    of: String,
-    default: {
-
-    }
-  },
-  followers: [{
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-  following: [{
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  }],
-}, { timestamps: true }
-);
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  const salt = await bcrypt.genSalt(10);
-  const hash = await bcrypt.hash(this.password, salt);
-  this.password = hash;
-  next();
+  try {
+    if (this.isAdmin && !isDevelopment) {
+      return next(new Error('Creating admin users is not allowed in production mode'));
+    }
+
+    if (this.isModified('password')) {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+    }
+
+    next();
+  } catch (error) {
+    console.error('Error in userSchema pre-save:', error);
+    next(error);
+  }
 });
+
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    console.error('Error comparing passwords:', error);
+    throw new Error('Error comparing passwords');
+  }
+};
 
 module.exports = mongoose.model('User', userSchema);

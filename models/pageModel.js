@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const applyToJSON = require('../middlewares/applyToJson');
+
 
 const pageSchema = new Schema({
     title: {
@@ -29,4 +31,5 @@ const pageSchema = new Schema({
  
     }, { timestamps: true });
 
+    applyToJSON(pageSchema);
 module.exports = mongoose.model('Page', pageSchema);

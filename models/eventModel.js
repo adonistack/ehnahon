@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const applyToJSON = require('../middlewares/applyToJson');
+
 
 const EventSchema = new Schema({
     name: {
@@ -51,4 +53,5 @@ const EventSchema = new Schema({
     },
     }, { timestamps: true });
 
+    applyToJSON(EventSchema);
 module.exports = mongoose.model('Event', EventSchema);

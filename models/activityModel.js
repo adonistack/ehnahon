@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const applyToJSON = require('../middlewares/applyToJson');
 
 const ActivitySchema = new Schema({
     name: {
@@ -43,5 +44,7 @@ const ActivitySchema = new Schema({
         type: String,
     },
     }, { timestamps: true });
+
+applyToJSON(ActivitySchema);
 
 module.exports = mongoose.model('Activity', ActivitySchema)
